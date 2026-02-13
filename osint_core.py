@@ -119,11 +119,25 @@ class OSINTCore:
         urls = self.search_web(query, max_results=max_results)
         return {"username": username, "query": query, "urls": urls}
 
-    def monitor_followers(self, username: str, previous_followers: int) -> Dict[str, object]:
+    def monitor_followers(
+        self, username: str, previous_followers: int
+    ) -> Dict[str, object]:
+        profile = self.get_profile_metadata(username)
+        if "error" in profile:
+            return {
+                "username": username,
+                "previous_followers": previous_followers,
+                "status": "error",
+                "error": profile["error"],
+            }
+        current = profile.get("followers", 0)
+        delta = current - previous_followers
         return {
             "username": username,
             "previous_followers": previous_followers,
-            "status": "not_implemented",
+            "current_followers": current,
+            "delta": delta,
+            "status": "ok",
         }
 
     @staticmethod
