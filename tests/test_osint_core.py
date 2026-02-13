@@ -95,8 +95,8 @@ class TestAdvancedGoogleHacking:
     @patch.object(OSINTCore, "search_web", return_value=["https://r.com/1"])
     def test_runs_all_dorks(self, mock_search):
         core = OSINTCore()
-        result = core.advanced_google_hacking("example.com")
-        assert result["domain"] == "example.com"
+        result = core.advanced_google_hacking("johndoe")
+        assert result["target"] == "johndoe"
         assert len(result["dorks"]) == 4
         assert mock_search.call_count == 4
 
@@ -104,23 +104,23 @@ class TestAdvancedGoogleHacking:
     def test_runs_selected_dorks(self, mock_search):
         core = OSINTCore()
         result = core.advanced_google_hacking(
-            "example.com", dork_types=["Buckets de Nuvem"]
+            "johndoe", dork_types=["Mencoes Publicas"]
         )
         assert len(result["dorks"]) == 1
-        assert result["dorks"][0]["type"] == "Buckets de Nuvem"
+        assert result["dorks"][0]["type"] == "Mencoes Publicas"
 
     @patch.object(OSINTCore, "search_web", return_value=[])
-    def test_dork_query_contains_domain(self, mock_search):
+    def test_dork_query_contains_target(self, mock_search):
         core = OSINTCore()
-        core.advanced_google_hacking("target.org")
+        core.advanced_google_hacking("johndoe")
         for call_args in mock_search.call_args_list:
             query = call_args[0][0]
-            assert "target" in query
+            assert "johndoe" in query
 
     @patch.object(OSINTCore, "search_web", return_value=[])
     def test_unknown_dork_type_skipped(self, mock_search):
         core = OSINTCore()
-        result = core.advanced_google_hacking("x.com", dork_types=["NonExistent"])
+        result = core.advanced_google_hacking("johndoe", dork_types=["NonExistent"])
         assert result["dorks"] == []
         mock_search.assert_not_called()
 
@@ -137,8 +137,8 @@ class TestImageDork:
     )
     def test_filters_image_extensions(self, mock_search):
         core = OSINTCore()
-        result = core.image_dork("site.com")
-        assert "site.com" in result["query"]
+        result = core.image_dork("johndoe")
+        assert "johndoe" in result["query"]
         assert len(result["urls"]) == 2
         assert "https://site.com/doc.pdf" not in result["urls"]
 

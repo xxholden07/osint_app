@@ -68,33 +68,32 @@ class OSINTCore:
         return results
 
     def advanced_google_hacking(
-        self, domain: str, dork_types: Optional[List[str]] = None, max_results: int = 20
+        self, target: str, dork_types: Optional[List[str]] = None, max_results: int = 20
     ) -> Dict[str, List[Dict[str, object]]]:
         dorks = {
-            "Vazamento de Credenciais": 'site:{domain} filetype:xls OR filetype:xlsx "username" OR "password"',
-            "Arquivos de Log e Backup": 'site:{domain} ext:log OR ext:bak OR ext:sql OR ext:txt "admin"',
-            "Diretorios Expostos": 'site:{domain} intitle:"index of" "parent directory"',
-            "Buckets de Nuvem": 'site:s3.amazonaws.com "{domain_token}"',
+            "Fotos e Imagens": '"{target}" (filetype:jpg OR filetype:png OR filetype:jpeg)',
+            "Perfis em Redes Sociais": '"{target}" site:facebook.com OR site:twitter.com OR site:linkedin.com OR site:instagram.com',
+            "Fotos em Redes Sociais": '"{target}" (foto OR photo OR profile) site:facebook.com OR site:instagram.com',
+            "Mencoes Publicas": '"{target}" intext:"tagged" OR intext:"mentioned"',
         }
         selected = dork_types or list(dorks.keys())
         results: List[Dict[str, object]] = []
-        domain_token = domain.split(".")[0]
         for dork_type in selected:
             template = dorks.get(dork_type)
             if not template:
                 continue
-            query = template.format(domain=domain, domain_token=domain_token)
+            query = template.format(target=target)
             urls = self.search_web(query, max_results=max_results)
             results.append({"type": dork_type, "query": query, "urls": urls})
-        return {"domain": domain, "dorks": results}
+        return {"target": target, "dorks": results}
 
-    def image_dork(self, domain: str, max_results: int = 24) -> Dict[str, object]:
-        query = 'site:{domain} (ext:jpg OR ext:png OR intitle:"index of" DCIM)'.format(
-            domain=domain
+    def image_dork(self, target: str, max_results: int = 24) -> Dict[str, object]:
+        query = '"{target}" (filetype:jpg OR filetype:png OR filetype:jpeg)'.format(
+            target=target
         )
         urls = self.search_web(query, max_results=max_results)
         image_urls = [u for u in urls if u.lower().endswith((".jpg", ".jpeg", ".png"))]
-        return {"domain": domain, "query": query, "urls": image_urls}
+        return {"target": target, "query": query, "urls": image_urls}
 
     def get_profile_metadata(self, username: str) -> Dict[str, object]:
         loader = instaloader.Instaloader()
