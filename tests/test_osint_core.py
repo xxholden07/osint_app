@@ -2,6 +2,7 @@ import io
 import json
 from unittest.mock import MagicMock, patch
 
+import instaloader
 import pytest
 
 from osint_core import OSINTCore
@@ -171,6 +172,18 @@ class TestInstagram:
         result = core.get_profile_metadata("baduser")
         assert "error" in result
         assert result["username"] == "baduser"
+
+    @patch(
+        "osint_core.instaloader.Profile.from_username",
+        side_effect=instaloader.TooManyRequestsException("429 Too Many Requests"),
+    )
+    @patch("osint_core.instaloader.Instaloader")
+    def test_get_profile_metadata_rate_limited(self, mock_loader_cls, mock_from_user):
+        core = OSINTCore()
+        result = core.get_profile_metadata("ratelimited")
+        assert result["username"] == "ratelimited"
+        assert "error" in result
+        assert "429" in result["error"]
 
 
 class TestPrivateSniffer:

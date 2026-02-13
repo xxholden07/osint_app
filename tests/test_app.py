@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app import build_link_table, extract_exif, fetch_image, gps_to_decimal
+from app import build_link_table, extract_exif, extract_image_urls_from_dorks, fetch_image, gps_to_decimal
 
 
 class TestBuildLinkTable:
@@ -87,3 +87,72 @@ class TestGpsToDecimal:
         lat, lon = gps_to_decimal(gps_info)
         assert abs(lat - 40.446111) < 0.01
         assert lon < 0  # West is negative
+
+
+class TestExtractImageUrlsFromDorks:
+    def test_empty_dorks(self):
+        assert extract_image_urls_from_dorks({}) == []
+
+    def test_extracts_images_from_fotos_e_imagens(self):
+        data = {
+            "dorks": [
+                {
+                    "type": "Fotos e Imagens",
+                    "urls": [
+                        "https://site.com/photo.jpg",
+                        "https://site.com/doc.pdf",
+                        "https://site.com/img.png",
+                    ],
+                }
+            ]
+        }
+        result = extract_image_urls_from_dorks(data)
+        assert result == ["https://site.com/photo.jpg", "https://site.com/img.png"]
+
+    def test_extracts_images_from_fotos_em_redes_sociais(self):
+        data = {
+            "dorks": [
+                {
+                    "type": "Fotos em Redes Sociais",
+                    "urls": ["https://site.com/pic.jpeg"],
+                }
+            ]
+        }
+        result = extract_image_urls_from_dorks(data)
+        assert result == ["https://site.com/pic.jpeg"]
+
+    def test_ignores_non_image_dork_types(self):
+        data = {
+            "dorks": [
+                {
+                    "type": "Perfis em Redes Sociais",
+                    "urls": ["https://site.com/photo.jpg"],
+                },
+                {
+                    "type": "Mencoes Publicas",
+                    "urls": ["https://site.com/img.png"],
+                },
+            ]
+        }
+        result = extract_image_urls_from_dorks(data)
+        assert result == []
+
+    def test_mixed_dork_types(self):
+        data = {
+            "dorks": [
+                {
+                    "type": "Fotos e Imagens",
+                    "urls": ["https://a.com/x.jpg"],
+                },
+                {
+                    "type": "Perfis em Redes Sociais",
+                    "urls": ["https://b.com/y.jpg"],
+                },
+                {
+                    "type": "Fotos em Redes Sociais",
+                    "urls": ["https://c.com/z.png"],
+                },
+            ]
+        }
+        result = extract_image_urls_from_dorks(data)
+        assert result == ["https://a.com/x.jpg", "https://c.com/z.png"]
