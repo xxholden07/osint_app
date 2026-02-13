@@ -215,7 +215,12 @@ def main() -> None:
         image_count = st.slider("Max imagens", min_value=3, max_value=18, value=9, step=3)
 
         if st.button("Executar Dorks") and target:
-            dork_results = core.advanced_google_hacking(target, selected_dorks)
+            with st.spinner("Executando dorks... isso pode levar alguns segundos."):
+                try:
+                    dork_results = core.advanced_google_hacking(target, selected_dorks)
+                except Exception as exc:
+                    st.error(f"Erro ao executar dorks: {exc}")
+                    dork_results = {}
             st.session_state.session_results["google_dorks"] = dork_results
             image_urls = extract_image_urls_from_dorks(dork_results)
             if image_urls:
@@ -225,6 +230,13 @@ def main() -> None:
                 }
             else:
                 st.session_state.session_results["image_gallery"] = {}
+            if dork_results and not any(
+                entry.get("urls") for entry in dork_results.get("dorks", [])
+            ):
+                st.warning(
+                    "Nenhum resultado encontrado. O servico de busca pode estar"
+                    " bloqueando requisicoes deste servidor. Tente novamente mais tarde."
+                )
 
         dork_results = st.session_state.session_results.get("google_dorks", {})
         if dork_results:
