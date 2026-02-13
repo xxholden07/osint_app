@@ -191,16 +191,16 @@ def main() -> None:
 
     if section == "Google Dorks":
         st.header("Advanced Google Hacking")
-        domain = st.text_input("Dominio Alvo", placeholder="alvo.com")
+        target = st.text_input("Username ou Nome da Pessoa", placeholder="johndoe ou João Silva")
         dork_options = [
-            "Vazamento de Credenciais",
-            "Arquivos de Log e Backup",
-            "Diretorios Expostos",
-            "Buckets de Nuvem",
+            "Fotos e Imagens",
+            "Perfis em Redes Sociais",
+            "Fotos em Redes Sociais",
+            "Mencoes Publicas",
         ]
         selected_dorks = st.multiselect("Tipos de Busca", dork_options, default=dork_options)
-        if st.button("Executar Dorks") and domain:
-            dork_results = core.advanced_google_hacking(domain, selected_dorks)
+        if st.button("Executar Dorks") and target:
+            dork_results = core.advanced_google_hacking(target, selected_dorks)
             st.session_state.session_results["google_dorks"] = dork_results
 
         dork_results = st.session_state.session_results.get("google_dorks", {})
@@ -220,8 +220,8 @@ def main() -> None:
 
         st.subheader("Galeria de Evidencias")
         image_count = st.slider("Max imagens", min_value=3, max_value=18, value=9, step=3)
-        if st.button("Buscar Imagens Sensiveis") and domain:
-            gallery = core.image_dork(domain, max_results=image_count)
+        if st.button("Buscar Imagens Sensiveis") and target:
+            gallery = core.image_dork(target, max_results=image_count)
             st.session_state.session_results["image_gallery"] = gallery
 
         gallery = st.session_state.session_results.get("image_gallery", {})
