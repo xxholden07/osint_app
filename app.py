@@ -230,7 +230,9 @@ def main() -> None:
                 }
             else:
                 st.session_state.session_results["image_gallery"] = {}
-            if not dork_results.get("dorks"):
+            if dork_results and not any(
+                entry.get("urls") for entry in dork_results.get("dorks", [])
+            ):
                 st.warning(
                     "Nenhum resultado encontrado. O servico de busca pode estar"
                     " bloqueando requisicoes deste servidor. Tente novamente mais tarde."
