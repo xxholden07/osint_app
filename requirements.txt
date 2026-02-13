@@ -3,4 +3,4 @@ instaloader
 pandas
 pillow
 requests
-streamlit
+streamlit>=1.32.0
