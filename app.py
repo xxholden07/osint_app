@@ -114,6 +114,18 @@ def build_link_table(dork_results: Dict[str, object]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def extract_image_urls_from_dorks(dork_results: Dict[str, object]) -> List[str]:
+    image_dork_types = {"Fotos e Imagens", "Fotos em Redes Sociais"}
+    image_extensions = (".jpg", ".jpeg", ".png")
+    image_urls: List[str] = []
+    for entry in dork_results.get("dorks", []):
+        if entry.get("type", "") in image_dork_types:
+            for url in entry.get("urls", []):
+                if url.lower().endswith(image_extensions):
+                    image_urls.append(url)
+    return image_urls
+
+
 def fetch_image(url: str, headers: Dict[str, str]) -> Tuple[bytes, str]:
     try:
         response = requests.get(url, headers=headers, timeout=12)
@@ -199,9 +211,20 @@ def main() -> None:
             "Mencoes Publicas",
         ]
         selected_dorks = st.multiselect("Tipos de Busca", dork_options, default=dork_options)
+        st.subheader("Galeria de Evidencias")
+        image_count = st.slider("Max imagens", min_value=3, max_value=18, value=9, step=3)
+
         if st.button("Executar Dorks") and target:
             dork_results = core.advanced_google_hacking(target, selected_dorks)
             st.session_state.session_results["google_dorks"] = dork_results
+            image_urls = extract_image_urls_from_dorks(dork_results)
+            if image_urls:
+                st.session_state.session_results["image_gallery"] = {
+                    "target": target,
+                    "urls": image_urls[:image_count],
+                }
+            else:
+                st.session_state.session_results["image_gallery"] = {}
 
         dork_results = st.session_state.session_results.get("google_dorks", {})
         if dork_results:
@@ -217,12 +240,6 @@ def main() -> None:
                         )
                     },
                 )
-
-        st.subheader("Galeria de Evidencias")
-        image_count = st.slider("Max imagens", min_value=3, max_value=18, value=9, step=3)
-        if st.button("Buscar Imagens Sensiveis") and target:
-            gallery = core.image_dork(target, max_results=image_count)
-            st.session_state.session_results["image_gallery"] = gallery
 
         gallery = st.session_state.session_results.get("image_gallery", {})
         image_urls = gallery.get("urls", []) if gallery else []

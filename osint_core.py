@@ -96,7 +96,10 @@ class OSINTCore:
         return {"target": target, "query": query, "urls": image_urls}
 
     def get_profile_metadata(self, username: str) -> Dict[str, object]:
-        loader = instaloader.Instaloader()
+        loader = instaloader.Instaloader(
+            max_connection_attempts=1,
+            request_timeout=self.request_timeout,
+        )
         try:
             profile = instaloader.Profile.from_username(loader.context, username)
             return {
@@ -107,6 +110,11 @@ class OSINTCore:
                 "id": profile.userid,
                 "profile_pic_url": profile.profile_pic_url,
                 "is_private": profile.is_private,
+            }
+        except instaloader.TooManyRequestsException:
+            return {
+                "username": username,
+                "error": "Rate limited by Instagram (429). Try again in a few minutes.",
             }
         except Exception as exc:  # pragma: no cover - runtime dependent
             return {"username": username, "error": str(exc)}
