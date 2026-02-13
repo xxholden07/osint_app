@@ -217,7 +217,6 @@ class TestInstagram:
         assert "error" in result
         assert "429" in result["error"]
 
-
     @patch("osint_core.instaloader", None)
     def test_get_profile_metadata_missing_instaloader(self):
         core = OSINTCore()
