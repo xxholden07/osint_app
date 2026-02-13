@@ -49,13 +49,16 @@ class OSINTCore:
         url = "https://duckduckgo.com/html/"
         params = {"q": query}
         self._sleep_random()
-        response = requests.get(
-            url,
-            params=params,
-            headers=self._get_headers(),
-            timeout=self.request_timeout,
-        )
-        response.raise_for_status()
+        try:
+            response = requests.get(
+                url,
+                params=params,
+                headers=self._get_headers(),
+                timeout=self.request_timeout,
+            )
+            response.raise_for_status()
+        except requests.RequestException:
+            return []
         soup = BeautifulSoup(response.text, "html.parser")
         results: List[str] = []
         for link in soup.select("a.result__a"):

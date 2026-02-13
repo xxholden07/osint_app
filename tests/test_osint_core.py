@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import instaloader
 import pytest
+import requests
 
 from osint_core import OSINTCore
 
@@ -90,6 +91,31 @@ class TestSearchWeb:
         core = OSINTCore()
         results = core.search_web("test", max_results=2)
         assert len(results) == 2
+
+    @patch("osint_core.time.sleep")
+    @patch("osint_core.requests.get", side_effect=requests.ConnectionError("connection refused"))
+    def test_search_web_returns_empty_on_connection_error(self, mock_get, _mock_sleep):
+        core = OSINTCore()
+        results = core.search_web("test query")
+        assert results == []
+
+    @patch("osint_core.time.sleep")
+    @patch("osint_core.requests.get", side_effect=requests.Timeout("request timed out"))
+    def test_search_web_returns_empty_on_timeout(self, mock_get, _mock_sleep):
+        core = OSINTCore()
+        results = core.search_web("test query")
+        assert results == []
+
+    @patch("osint_core.time.sleep")
+    @patch("osint_core.requests.get")
+    def test_search_web_returns_empty_on_http_error(self, mock_get, _mock_sleep):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.side_effect = requests.HTTPError("403 Forbidden")
+        mock_get.return_value = mock_resp
+
+        core = OSINTCore()
+        results = core.search_web("test query")
+        assert results == []
 
 
 class TestAdvancedGoogleHacking:
