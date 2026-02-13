@@ -4,9 +4,17 @@ import time
 from typing import Dict, List, Optional
 from urllib.parse import parse_qs, unquote, urlparse
 
-import instaloader
 import requests
-from bs4 import BeautifulSoup
+
+try:
+    import instaloader
+except ImportError:  # pragma: no cover
+    instaloader = None  # type: ignore[assignment]
+
+try:
+    from bs4 import BeautifulSoup
+except ImportError:  # pragma: no cover
+    BeautifulSoup = None  # type: ignore[assignment,misc]
 
 
 class OSINTCore:
@@ -46,6 +54,8 @@ class OSINTCore:
         return href
 
     def search_web(self, query: str, max_results: int = 20) -> List[str]:
+        if BeautifulSoup is None:
+            return []
         url = "https://duckduckgo.com/html/"
         params = {"q": query}
         self._sleep_random()
@@ -99,6 +109,8 @@ class OSINTCore:
         return {"target": target, "query": query, "urls": image_urls}
 
     def get_profile_metadata(self, username: str) -> Dict[str, object]:
+        if instaloader is None:
+            return {"username": username, "error": "instaloader is not installed"}
         loader = instaloader.Instaloader(
             max_connection_attempts=1,
             request_timeout=self.request_timeout,

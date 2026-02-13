@@ -117,6 +117,12 @@ class TestSearchWeb:
         results = core.search_web("test query")
         assert results == []
 
+    @patch("osint_core.BeautifulSoup", None)
+    def test_search_web_returns_empty_when_bs4_missing(self):
+        core = OSINTCore()
+        results = core.search_web("test query")
+        assert results == []
+
 
 class TestAdvancedGoogleHacking:
     @patch.object(OSINTCore, "search_web", return_value=["https://r.com/1"])
@@ -210,6 +216,13 @@ class TestInstagram:
         assert result["username"] == "ratelimited"
         assert "error" in result
         assert "429" in result["error"]
+
+    @patch("osint_core.instaloader", None)
+    def test_get_profile_metadata_missing_instaloader(self):
+        core = OSINTCore()
+        result = core.get_profile_metadata("someuser")
+        assert result["username"] == "someuser"
+        assert "error" in result
 
 
 class TestPrivateSniffer:
